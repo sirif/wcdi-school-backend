@@ -39,8 +39,16 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    'user.apps.UserConfig'
+    'rest_framework',
+    'drf_yasg',
+
+    'user.apps.UserConfig',
+    'objects.apps.ObjectsConfig'
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -71,6 +79,16 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'schoolbook.wsgi.application'
+
+SWAGGER_SETTINGS = {
+    'USE_SESSION_AUTH': False,
+    'SECURITY_DEFINITIONS': {
+        'basic': {
+            'type': 'basic'
+        },
+    },
+    'DOC_EXPANSION': 'None'
+}
 
 
 # Database
