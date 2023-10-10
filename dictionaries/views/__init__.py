@@ -1,0 +1,2 @@
+from .dict_first_name_view import DictFirstNameViewSet
+from .dict_second_name_view import DictSecondNameViewSet

@@ -43,7 +43,8 @@ INSTALLED_APPS = [
     'drf_yasg',
 
     'user.apps.UserConfig',
-    'objects.apps.ObjectsConfig'
+    'objects.apps.ObjectsConfig',
+    'dictionaries.apps.DictionariesConfig'
 ]
 
 REST_FRAMEWORK = {
