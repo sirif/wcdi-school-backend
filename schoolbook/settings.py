@@ -44,7 +44,8 @@ INSTALLED_APPS = [
 
     'user.apps.UserConfig',
     'objects.apps.ObjectsConfig',
-    'dictionaries.apps.DictionariesConfig'
+    'dictionaries.apps.DictionariesConfig',
+    'subjects.apps.SubjectsConfig',
 ]
 
 REST_FRAMEWORK = {
