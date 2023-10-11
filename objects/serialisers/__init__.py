@@ -1,2 +1,3 @@
 from .group_serializer import GroupSerializer
 from .school_serializer import SchoolSerializer
+from .discipline_serializer import DisciplineSerializer
