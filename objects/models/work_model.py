@@ -1,7 +1,7 @@
 from uuid import uuid4
 from django.db import models
 from objects.models import DisciplineModel
-from subjects.models import StudentModel
+from subjects.models.student_model import StudentModel
 
 
 class WorkModel(models.Model):

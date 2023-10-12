@@ -4,6 +4,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 
 from objects.models.school_model import SchoolModel
+from subjects.models.teacher_model import TeacherModel
 
 
 class LetterChoices(models.TextChoices):
@@ -31,13 +32,24 @@ class GroupModel(models.Model):
         null=False
     )
     year = models.IntegerField(
-        validators=[MinValueValidator(1), MaxValueValidator(11)]
+        validators=[MinValueValidator(1900), MaxValueValidator(2100)]
     )
     school = models.ForeignKey(
         SchoolModel,
         on_delete=models.CASCADE,
         related_name='group_set'
     )
+    teacher = models.ForeignKey(
+        TeacherModel,
+        on_delete=models.RESTRICT,
+        related_name='group_set',
+        blank=True,
+        null=True        
+    )
+
+    def __str__(self) -> str:
+        return f'{self.study_year} {self.letter} - {super().__str__()}'
+
 
     # ToDo: должно возвращать расчитанное значение; не хранится в бд
     @property

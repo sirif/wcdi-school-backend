@@ -2,7 +2,7 @@ from django.db import  models
 from uuid import uuid4
 from dictionaries.models import DictFirstNameModel
 from dictionaries.models import DictSecondNameModel
-from objects.models import GroupModel
+from objects.models.group_model import GroupModel
 
 
 class StudentModel(models.Model):

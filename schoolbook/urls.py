@@ -36,8 +36,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path(r'swagger/', yasg_schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-    path('/users/', include('user.urls')),
-    path('/objects/', include('objects.urls')),
-    path('/dictionaries/', include('dictionaries.urls')),
-    path('/subjects/', include('subjects.urls'))
+    path('users/', include('user.urls')),
+    path('objects/', include('objects.urls')),
+    path('dictionaries/', include('dictionaries.urls')),
+    path('subjects/', include('subjects.urls'))
 ]
