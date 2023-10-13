@@ -50,7 +50,6 @@ class GroupModel(models.Model):
     def __str__(self) -> str:
         return f'{self.study_year} {self.letter} - {super().__str__()}'
 
-
     # ToDo: должно возвращать расчитанное значение; не хранится в бд
     @property
     def statistics(self):

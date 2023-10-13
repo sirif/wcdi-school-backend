@@ -26,3 +26,6 @@ class StudentModel(models.Model):
         GroupModel,
         on_delete=models.RESTRICT,
         related_name='student_set')
+
+    def __str__(self):
+        return f'{self.first_name} {self.second_name} - {super().__str__()}'

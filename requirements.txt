@@ -1,4 +1,5 @@
-Django
-djangorestframework
+Django~=4.2.6
+djangorestframework~=3.14.0
 drf-yasg
 django_filter
+drf_extra_fields

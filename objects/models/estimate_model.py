@@ -1,7 +1,7 @@
 from _ast import mod
 from uuid import uuid4
 from django.db import models
-from objects.models import WorkModel
+from objects.models.work_model import WorkModel
 from django.core.validators import MinValueValidator, MaxValueValidator
 
 
