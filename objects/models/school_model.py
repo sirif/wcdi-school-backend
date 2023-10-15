@@ -26,8 +26,7 @@ class SchoolModel(models.Model):
         from subjects.models.student_model import StudentModel
         from subjects.models.teacher_model import TeacherModel
 
-        # Todo читать 
-        # тут магия
+        # тут магия, но работает: https://docs.djangoproject.com/en/4.2/topics/db/queries/#backwards-related-objects
         #  groups_total = self.group_set.count
 
         groups_total = GroupModel.objects.filter(school__uuid=self.uuid).count()

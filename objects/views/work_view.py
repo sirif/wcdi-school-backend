@@ -1,4 +1,6 @@
 import os.path
+from builtins import super
+
 from django.http import Http404
 
 from rest_framework import viewsets, generics, status
@@ -15,6 +17,10 @@ class WorkViewSet(viewsets.ModelViewSet):
     queryset = WorkModel.objects.all()
     serializer_class = WorkSerializer
 
+    def create(self, request, *args, **kwargs):
+        # print("create WorkViewSet")
+        return super().create(self, request, args, kwargs)
+
 
 class WorkExportView(generics.CreateAPIView):
     serializer_class = WorkExportSerializer
@@ -24,6 +30,10 @@ class WorkExportView(generics.CreateAPIView):
         schema=openapi.Schema(type=openapi.TYPE_FILE)
     )})
     def create(self, request, *args, **kwargs):
+        # print("create")
+        # serializer = self.get_serializer(data=request.data)
+        # serializer.is_valid(raise_exception=True)
+
         item_uuid = request.data.get('item_uuid')
         file_name = os.path.join(settings.MEDIA_ROOT, WorkModel.__name__.lower(), item_uuid)
         try:
@@ -33,7 +43,7 @@ class WorkExportView(generics.CreateAPIView):
         print(file_name)
         original_file_name = work.item_meta.get('original_file_name', 'default.xlsx')
 
-        if not os.path.exists(file_name) :
+        if not os.path.exists(file_name):
             raise Http404
         # writer = self.xls_writer(request.data)
         # writer.generate_report()

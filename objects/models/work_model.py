@@ -3,6 +3,7 @@ from uuid import uuid4
 from django.db import models
 from objects.models import DisciplineModel
 from subjects.models.student_model import StudentModel
+from django.core.validators import FileExtensionValidator
 
 
 class WorkModel(models.Model):
@@ -32,5 +33,6 @@ class WorkModel(models.Model):
         upload_to=_work_path_,
         help_text='Excel-file',
         null=True,
-        blank=True
+        blank=True,
+        validators=[FileExtensionValidator(['xlsx'])]
     )

@@ -19,10 +19,14 @@ class WorkSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         print("validator", data)
-        if 'original_file_name' in data.get('item_meta').keys():
-            return data
-        else:
-            raise serializers.ValidationError("missing orig_file_name")
+        if not isinstance(data.get('item_meta'), dict):
+            raise serializers.ValidationError("not dict")
+
+        item_meta: dict = data.get('item_meta')
+        if not (data.get('item_data') and item_meta.get('original_file_name')):
+            raise serializers.ValidationError("missing data or original_file_name")
+
+        return data
 
 
 class WorkExportSerializer(serializers.Serializer):
