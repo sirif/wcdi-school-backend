@@ -11,15 +11,12 @@ from django.http import FileResponse, HttpResponse
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from django.conf import settings
+from rest_framework.response import Response
 
 
 class WorkViewSet(viewsets.ModelViewSet):
     queryset = WorkModel.objects.all()
     serializer_class = WorkSerializer
-
-    def create(self, request, *args, **kwargs):
-        # print("create WorkViewSet")
-        return super().create(self, request, args, kwargs)
 
 
 class WorkExportView(generics.CreateAPIView):
@@ -31,8 +28,6 @@ class WorkExportView(generics.CreateAPIView):
     )})
     def create(self, request, *args, **kwargs):
         # print("create")
-        # serializer = self.get_serializer(data=request.data)
-        # serializer.is_valid(raise_exception=True)
 
         item_uuid = request.data.get('item_uuid')
         file_name = os.path.join(settings.MEDIA_ROOT, WorkModel.__name__.lower(), item_uuid)

@@ -14,7 +14,7 @@ def excel_validator(file_path: Path):
 @receiver(post_save, sender=WorkModel)
 def on_work_load(**kwargs):
     work = kwargs['instance']
-    file_path = Path(os.path.join(settings.MEDIA_ROOT, work.item_data.name))
+    file_path = Path(settings.MEDIA_ROOT, WorkModel.__name__.lower(), str(work.uuid))
 
     if excel_validator(file_path):
         print("signals: ", file_path)
