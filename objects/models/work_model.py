@@ -3,7 +3,7 @@ from uuid import uuid4
 from django.db import models
 from objects.models import DisciplineModel
 from subjects.models.student_model import StudentModel
-from django.core.validators import FileExtensionValidator
+from django.core.validators import FileExtensionValidator, MinValueValidator
 
 
 class WorkModel(models.Model):
@@ -36,3 +36,8 @@ class WorkModel(models.Model):
         blank=True,
         validators=[FileExtensionValidator(['xlsx'])]
     )
+    work_number = models.IntegerField(
+        validators=[MinValueValidator(1),], 
+        blank=True, 
+        null=True
+        )

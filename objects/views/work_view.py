@@ -17,9 +17,8 @@ class WorkViewSet(viewsets.ModelViewSet):
     queryset = WorkModel.objects.all()
     serializer_class = WorkSerializer
 
-    def create(self, request, *args, **kwargs):
-        # print("create WorkViewSet")
-        return super().create(self, request, args, kwargs)
+    def get_serializer_class(self):
+        return WorkSerializer
 
 
 class WorkExportView(generics.CreateAPIView):
@@ -30,10 +29,6 @@ class WorkExportView(generics.CreateAPIView):
         schema=openapi.Schema(type=openapi.TYPE_FILE)
     )})
     def create(self, request, *args, **kwargs):
-        # print("create")
-        # serializer = self.get_serializer(data=request.data)
-        # serializer.is_valid(raise_exception=True)
-
         item_uuid = request.data.get('item_uuid')
         file_name = os.path.join(settings.MEDIA_ROOT, WorkModel.__name__.lower(), item_uuid)
         try:
