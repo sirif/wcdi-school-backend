@@ -11,6 +11,7 @@ from django.http import FileResponse, HttpResponse
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from django.conf import settings
+from rest_framework.response import Response
 
 
 class WorkViewSet(viewsets.ModelViewSet):
@@ -29,6 +30,7 @@ class WorkExportView(generics.CreateAPIView):
         schema=openapi.Schema(type=openapi.TYPE_FILE)
     )})
     def create(self, request, *args, **kwargs):
+
         item_uuid = request.data.get('item_uuid')
         file_name = os.path.join(settings.MEDIA_ROOT, WorkModel.__name__.lower(), item_uuid)
         try:
