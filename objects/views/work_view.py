@@ -1,5 +1,4 @@
 import os.path
-from builtins import super
 
 from django.http import Http404
 
@@ -11,7 +10,6 @@ from django.http import FileResponse, HttpResponse
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from django.conf import settings
-from rest_framework.response import Response
 
 
 class WorkViewSet(viewsets.ModelViewSet):

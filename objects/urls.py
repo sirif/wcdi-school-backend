@@ -10,4 +10,6 @@ router.register(r'discipline', DisciplineViewSet)
 router.register(r'work', WorkViewSet)
 router.register(r'estimate', EstimateViewSet)
 
-urlpatterns = router.urls + [path(r'work_export/', WorkExportView.as_view(), name='work_export'),]
+#uuid  воспринимается как тип! https://djangodoc.ru/3.2/topics/http/urls/
+urlpatterns = router.urls + [path(r'work_export/', WorkExportView.as_view(), name='work_export'),
+                             path(r'work-estimate/<uuid:item_uuid>/', work_estimate),]
