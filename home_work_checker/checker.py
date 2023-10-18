@@ -1,13 +1,15 @@
 import os.path
 
 from home_work_checker.algebra import *
+from home_work_checker.ru_lang import *
 from os import path as os_path
 
 
 class HomeWorkChecker:
 
     def __init__(self) -> None:
-        self.__check_dict__: dict = {A1().name(): A1()}
+        self.__check_dict__: dict = {A1().name(): A1(),
+                                     Ru1().name(): Ru1()}
         # self.__check_dict__[A1.name] = A1.check
 
     def check(self, key: str, file_name: os_path) -> int:
