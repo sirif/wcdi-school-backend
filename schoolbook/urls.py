@@ -39,5 +39,6 @@ urlpatterns = [
     path('users/', include('user.urls')),
     path('objects/', include('objects.urls')),
     path('dictionaries/', include('dictionaries.urls')),
-    path('subjects/', include('subjects.urls'))
+    path('subjects/', include('subjects.urls')),
+    path('staff-only/', include('staff_only.urls'))
 ]
