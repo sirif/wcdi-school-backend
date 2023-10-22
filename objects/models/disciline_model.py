@@ -19,3 +19,6 @@ class DisciplineModel(models.Model):
     class Meta:
         constraints = [models.UniqueConstraint(fields=['teacher', 'title'],
                                                name='teacher_title')]
+
+    def __str__(self):
+        return f'{self.title} - {super().__str__()}'
