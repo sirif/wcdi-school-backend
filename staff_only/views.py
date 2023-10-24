@@ -18,6 +18,7 @@ import pandas as pd
 STUDENT = "student"
 GROUP = "group"
 DISCIPLINE = "discipline"
+ITEM_META = "item_meta"
 
 STUDENT_TEMPLATE = {"Имя": "first_name",
                     "Фамилия": "second_name",
@@ -106,9 +107,10 @@ def __parse_disciplines__(file: pd.ExcelFile, study_year: int) -> dict:
                 elif ESTIMATE_TEMPLATE.get(h) is not None:
                     estimate_dict[ESTIMATE_TEMPLATE.get(h)] = val
 
-            estimate_dict[list(ESTIMATE_TEMPLATE.values())[1]] = work_dict[list(WORK_TEMPLATE.values())[1]]
+            estimate_dict[list(ESTIMATE_TEMPLATE.keys())[1]] = work_dict[list(WORK_TEMPLATE.values())[1]]
             work_dict[EstimateModel.__name__] = estimate_dict
             work_dict[DISCIPLINE] = DisciplineModel.objects.get(title=discipline)
+            work_dict[ITEM_META] = {"meta": "transfer from another school"}
             works.append(work_dict)
     return {WorkModel.__name__: works}
 
