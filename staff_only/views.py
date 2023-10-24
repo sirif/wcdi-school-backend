@@ -1,11 +1,10 @@
-from builtins import filter
-from tokenize import group
+from builtins import print
 
 from rest_framework import generics
 from objects.models.work_model import WorkModel
 from objects.models.disciline_model import DisciplineModel
-from objects.models.estimate_model import EstimateModel
 from objects.models.group_model import GroupModel
+from objects.models.estimate_model import EstimateModel
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from django.http import FileResponse, HttpResponse
@@ -14,49 +13,149 @@ from subjects.models.student_model import StudentModel
 from django.db import transaction
 from dictionaries.models.dict_first_name import DictFirstNameModel
 from dictionaries.models.dict_second_name import DictSecondNameModel
+import pandas as pd
+
+STUDENT = "student"
+GROUP = "group"
+DISCIPLINE = "discipline"
+
+STUDENT_TEMPLATE = {"Имя": "first_name",
+                    "Фамилия": "second_name",
+                    "Дата рождения": "birthday"}
+
+GROUP_TEMPLATE = {"Класс поступления": "study_year",
+                  "Литера": "letter"}
+
+WORK_TEMPLATE = {"Work number": "work_number",
+                 "Start date": "start_date"}
+
+ESTIMATE_TEMPLATE = {"Grade": "grade",
+                     "grade_date_time": "",
+                     "Description": "grade_description"}
+
+
+class TransferException(Exception):
+    """ custom transfer exception"""
+    pass
+
+
+def __parse_student__(student_df):
+    """
+    Парсинг страницы студента
+    """
+    student = {}
+
+    try:
+        for key in STUDENT_TEMPLATE:
+            res = student_df.loc[student_df[0] == key][1].values[0]
+            student[STUDENT_TEMPLATE[key]] = res
+    except Exception as e:
+        print(str(e))
+
+    # Обновляем имя, вместо него ставим непосредственно объект из словаря имён:
+    first_name_key = list(STUDENT_TEMPLATE.values())[0] # Костыль
+    first_name_obj = DictFirstNameModel.objects.get(pk=student[first_name_key])
+    student[first_name_key] = first_name_obj
+
+    # Обновляем фамилию, вместо неё ставим непосредственно объект из словаря фамилий:
+    second_name_key = list(STUDENT_TEMPLATE.values())[1]
+    second_name_obj = DictSecondNameModel.objects.get(pk=student[second_name_key])
+    student[second_name_key] = second_name_obj
+
+    group = {}
+    try:
+        for key in GROUP_TEMPLATE:
+            res = student_df.loc[student_df[0] == key][1].values[0]
+            group[GROUP_TEMPLATE[key]] = res
+    except Exception as e:
+        print(str(e))
+    group_keys = list(GROUP_TEMPLATE.values())
+    group_obj = GroupModel.objects.get(study_year=group.get(group_keys[0]),
+                                       letter=group.get(group_keys[1]))
+    student[GROUP] = group_obj
+    d = {StudentModel.__name__: student}
+    return d
+
+
+def __parse_disciplines__(file: pd.ExcelFile, study_year: int) -> dict:
+    """
+    Парсинг страниц дисциплин excel документа
+    """
+    disciplines = []
+    for sheet in file.sheet_names:
+        if sheet == STUDENT:
+            continue
+        disciplines.append(sheet)
+    if not __check_disciplines__(disciplines, study_year):
+        raise TransferException("Кол-во дисциплин не соответствует программе школы")
+
+    works = []
+    for discipline in disciplines:
+        discipline_df = file.parse(sheet_name=discipline, header=None)
+        head = discipline_df.loc[0].to_list()
+
+        for indexRow, row in discipline_df.iterrows():
+            # Пропускаем заголовок
+            if indexRow == 0:
+                continue
+            work_dict = {}
+            estimate_dict = {}
+            for h, val in zip(head, row.to_list()):
+                if WORK_TEMPLATE.get(h) is not None:
+                    work_dict[WORK_TEMPLATE.get(h)] = val
+                elif ESTIMATE_TEMPLATE.get(h) is not None:
+                    estimate_dict[ESTIMATE_TEMPLATE.get(h)] = val
+
+            estimate_dict[list(ESTIMATE_TEMPLATE.values())[1]] = work_dict[list(WORK_TEMPLATE.values())[1]]
+            work_dict[EstimateModel.__name__] = estimate_dict
+            work_dict[DISCIPLINE] = DisciplineModel.objects.get(title=discipline)
+            works.append(work_dict)
+    return {WorkModel.__name__: works}
+
+
+def __check_disciplines__(disc: list, study_year: int) -> bool:
+    """
+    Проверяем набор необходимых предметов
+    """
+    disciplines_by_year = DisciplineModel.objects.filter(study_year=study_year)
+    result_list = [v for v in disciplines_by_year if v.title in disc]
+    return len(result_list) == len(disc)
 
 
 # в перспективе будет переделано на работу с файлами в личном деле
 def transfer_check(file) -> dict:
-    # # ToDo: перенести логику создания в transfer_check
-    # for param, class_name in zip(["first_name", "second_name"], [DictFirstNameModel, DictSecondNameModel]):
-    #     param_val: class_name = None
-    #     try:
-    #         param_val = class_name.objects.get(pk=student_data.get(param))
-    #     except Exception as e:
-    #         param_val = class_name.objects.create(name=student_data.get(param))
-    #         print(str(e))
-    #     finally:
-    #         student_data.update({param: param_val})
-    #
-    # GroupModel.objects.get()
-    # try:
-    #     param_val = GroupModel.objects.get(pk=student_data.get("group.study_year"))
-    # except Exception as e:
-    #     param_val = GroupModel.objects.create(name=student_data.get(param))
-    #     print(str(e))
-    # finally:
-    #     student_data.update({param: param_val})
+    """
+    Проверяет файл перевода на корректность, возвращает словарь для заполнения данных об ученике в БД
+    """
+    xlsx_file = pd.ExcelFile(file)
+    result: dict = {}
+    try:
+        result.update(__parse_student__(xlsx_file.parse(sheet_name=STUDENT, header=None)))
+        result.update(__parse_disciplines__(xlsx_file, result.get(StudentModel.__name__, {}).get(GROUP).study_year))
 
-    group = GroupModel.objects.get(study_year="1", letter="A")
-    result = {
-        StudentModel.__name__: {
-            "first_name": DictFirstNameModel.objects.get(pk="Вася"),
-            "second_name": DictSecondNameModel.objects.get(pk="Пупкин"),
-            "birthday": "2015-10-12",
-            "group": group,
-        },
-        WorkModel.__name__: [{
-            "discipline": DisciplineModel.objects.get(title="Русский язык"),
-            "work_number": 1,
-            "item_meta": {"meta": "transfer from school number 32"},
-            EstimateModel.__name__: {
-             "grade": 5,
-             "grade_date_time": "2023-10-12",
-             "grade_description": ""
-            }
-        }]
-    }
+    except Exception as e:
+        print(str(e))
+
+    # group = GroupModel.objects.get(study_year="1", letter="A")
+
+    # result = {
+    #     StudentModel.__name__: {
+    #         "first_name": DictFirstNameModel.objects.get(pk="Вася"),
+    #         "second_name": DictSecondNameModel.objects.get(pk="Пупкин"),
+    #         "birthday": "2015-10-12",
+    #         "group": group,
+    #     },
+    #     WorkModel.__name__: [{
+    #         "discipline": DisciplineModel.objects.get(title="Русский язык"),
+    #         "work_number": 1,
+    #         "item_meta": {"meta": "transfer from school number 32"},
+    #         EstimateModel.__name__: {
+    #          "grade": 5,
+    #          "grade_date_time": "2023-10-12",
+    #          "grade_description": ""
+    #         }
+    #     }]
+    # }
     return result
 
 
@@ -74,9 +173,9 @@ class TransferStudent(generics.CreateAPIView):
         student_obj = StudentModel.objects.create(**student_data)
 
         for work_dict in dictionary.get(WorkModel.__name__):
-            discipline_obj = work_dict.get('discipline')
-            work_dict.update({'discipline': discipline_obj})
-            work_dict.update({'student': student_obj})
+            discipline_obj = work_dict.get(DISCIPLINE)
+            work_dict.update({DISCIPLINE: discipline_obj})
+            work_dict.update({STUDENT: student_obj})
             estimate_obj = work_dict.get(EstimateModel.__name__)
             work_dict.pop(EstimateModel.__name__)
             print(work_dict)
@@ -86,29 +185,12 @@ class TransferStudent(generics.CreateAPIView):
         return
 
     def create(self, request, *args, **kwargs):
+        """
+        Функция, осуществляющая перевод студента в школу
+        """
         file = request.data.get('file')
         result = transfer_check(file)
 
         self._store_models_(result)
 
-
-
-
-
         return HttpResponse()
-        #
-        # try:
-        #     work = WorkModel.objects.get(pk=item_uuid)
-        # except WorkModel.DoesNotExist as e:
-        #     return HttpResponse(str(e), status=status.HTTP_400_BAD_REQUEST)
-        # print(file_name)
-        # original_file_name = work.item_meta.get('original_file_name', 'default.xlsx')
-        #
-        # if not os.path.exists(file_name):
-        #     raise Http404
-        # # writer = self.xls_writer(request.data)
-        # # writer.generate_report()
-        # response = FileResponse(open(file_name, 'rb'), filename=original_file_name, as_attachment=True,
-        #                         status=status.HTTP_200_OK)
-        # del response['Transfer-Encoding']
-        # return response
