@@ -7,13 +7,14 @@ from objects.models.group_model import GroupModel
 from objects.models.estimate_model import EstimateModel
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-from django.http import FileResponse, HttpResponse
+from django.http import HttpResponse
 from .serializers import TransferStudentSerializer
 from subjects.models.student_model import StudentModel
 from django.db import transaction
 from dictionaries.models.dict_first_name import DictFirstNameModel
 from dictionaries.models.dict_second_name import DictSecondNameModel
 import pandas as pd
+from rest_framework.exceptions import APIException
 
 STUDENT = "student"
 GROUP = "group"
@@ -31,11 +32,11 @@ WORK_TEMPLATE = {"Work number": "work_number",
                  "Start date": "start_date"}
 
 ESTIMATE_TEMPLATE = {"Grade": "grade",
-                     "grade_date_time": "",
+                     "grade_date_time": "grade_date_time",
                      "Description": "grade_description"}
 
 
-class TransferException(Exception):
+class TransferException(APIException):
     """ custom transfer exception"""
     pass
 
@@ -90,11 +91,12 @@ def __parse_disciplines__(file: pd.ExcelFile, study_year: int) -> dict:
     if not __check_disciplines__(disciplines, study_year):
         raise TransferException("Кол-во дисциплин не соответствует программе школы")
 
+    estimates = []
+
     works = []
     for discipline in disciplines:
         discipline_df = file.parse(sheet_name=discipline, header=None)
         head = discipline_df.loc[0].to_list()
-
         for indexRow, row in discipline_df.iterrows():
             # Пропускаем заголовок
             if indexRow == 0:
@@ -106,12 +108,18 @@ def __parse_disciplines__(file: pd.ExcelFile, study_year: int) -> dict:
                     work_dict[WORK_TEMPLATE.get(h)] = val
                 elif ESTIMATE_TEMPLATE.get(h) is not None:
                     estimate_dict[ESTIMATE_TEMPLATE.get(h)] = val
+                if list(ESTIMATE_TEMPLATE.keys())[0] == h:
+                    estimates.append(int(val))
 
-            estimate_dict[list(ESTIMATE_TEMPLATE.keys())[1]] = work_dict[list(WORK_TEMPLATE.values())[1]]
+            estimate_dict[list(ESTIMATE_TEMPLATE.keys())[1]] =\
+                work_dict[list(WORK_TEMPLATE.values())[1]]
             work_dict[EstimateModel.__name__] = estimate_dict
             work_dict[DISCIPLINE] = DisciplineModel.objects.get(title=discipline)
             work_dict[ITEM_META] = {"meta": "transfer from another school"}
             works.append(work_dict)
+    mean_estimate = sum(estimates)/len(estimates)
+    if mean_estimate < 5:
+        raise TransferException(f"Средний балл не удовлетворительный - {mean_estimate:.2f}, необходим выше 3")
     return {WorkModel.__name__: works}
 
 
@@ -137,27 +145,8 @@ def transfer_check(file) -> dict:
 
     except Exception as e:
         print(str(e))
+        raise e
 
-    # group = GroupModel.objects.get(study_year="1", letter="A")
-
-    # result = {
-    #     StudentModel.__name__: {
-    #         "first_name": DictFirstNameModel.objects.get(pk="Вася"),
-    #         "second_name": DictSecondNameModel.objects.get(pk="Пупкин"),
-    #         "birthday": "2015-10-12",
-    #         "group": group,
-    #     },
-    #     WorkModel.__name__: [{
-    #         "discipline": DisciplineModel.objects.get(title="Русский язык"),
-    #         "work_number": 1,
-    #         "item_meta": {"meta": "transfer from school number 32"},
-    #         EstimateModel.__name__: {
-    #          "grade": 5,
-    #          "grade_date_time": "2023-10-12",
-    #          "grade_description": ""
-    #         }
-    #     }]
-    # }
     return result
 
 
