@@ -41,3 +41,5 @@ class WorkModel(models.Model):
         blank=True, 
         null=True
         )
+    start_date = models.DateField(auto_now_add=True)
+    deadline = models.DateField(null=True, blank=True)

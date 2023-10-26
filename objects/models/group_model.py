@@ -1,3 +1,4 @@
+from random import choices
 from uuid import uuid4
 
 from django.core.validators import MinValueValidator, MaxValueValidator
@@ -25,12 +26,14 @@ class GroupModel(models.Model):
     study_year = models.IntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(11)]
     )
+
     letter = models.CharField(
         max_length=2,
-        choices=LetterChoices.choices,
+        choices=((str(chr(v)), str(chr(v))) for v in range(ord('A'), ord('Z') + 1)),
         blank=False,
-        null=False
+        default='Z'
     )
+    
     year = models.IntegerField(
         validators=[MinValueValidator(1900), MaxValueValidator(2100)]
     )
